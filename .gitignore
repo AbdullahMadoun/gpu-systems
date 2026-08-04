@@ -1,0 +1,26 @@
+# Python & Pytest
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build & Package artifacts
+build/
+dist/
+*.egg-info/
+.venv/
+env/
+venv/
+
+# IDE & OS
+.DS_Store
+.vscode/
+.idea/
+
+# Benchmark outputs & Traces
+configs/*.json
+*.nsys-rep
+*.pt.trace.json
+profile_output*

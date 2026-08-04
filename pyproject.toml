@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gpu-systems"
+version = "0.1.0"
+description = "High-Performance GPU Systems, FlashAttention-2, CUDA C++ & Triton Kernels, Distributed Training (DDP), & Cloud Profiling"
+authors = [
+    { name = "Abdullah", email = "abdullah@example.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1.0",
+    "triton>=2.1.0; sys_platform == 'linux'",
+    "ninja>=1.11.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "einops>=0.7.0",
+    "tqdm>=4.66.0",
+    "wandb>=0.16.0",
+    "pytest>=7.4.0",
+    "humanfriendly>=10.0",
+    "modal>=0.56.0",
+    "pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+    "jupyter>=1.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
