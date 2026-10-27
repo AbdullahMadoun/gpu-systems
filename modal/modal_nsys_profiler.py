@@ -36,8 +36,8 @@ def run_nsys_profiler(mode: str):
     script = f"""
 import torch
 import gc
-from cs336_systems.benchmark import benchmark_model
-from cs336_systems.model_configs import load_all_configs
+from gpu_systems.benchmark import benchmark_model
+from gpu_systems.model_configs import load_all_configs
 
 configs = load_all_configs()
 config = configs["medium"]

@@ -1,6 +1,6 @@
 import torch
 import pytest
-from llm_systems.kernels.flash_attention import flash_attention
+from gpu_systems.kernels.flash_attention import flash_attention
 
 def test_flash_attention_forward():
     batch_size = 2
@@ -17,7 +17,7 @@ def test_flash_attention_forward():
     assert not torch.isnan(out).any()
 
 def test_cuda_extension_grayscale():
-    from llm_systems.kernels.cuda_extensions import get_grayscale_extension
+    from gpu_systems.kernels.cuda_extensions import get_grayscale_extension
     try:
         ext = get_grayscale_extension()
         img = torch.rand(64, 64, 3, dtype=torch.float32)

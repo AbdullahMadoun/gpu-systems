@@ -36,8 +36,8 @@ def run_benchmark_with_profiler(mode: str, label: str):
     import torch
     import gc
     from uuid import uuid4
-    from cs336_systems.benchmark import benchmark_model
-    from cs336_systems.model_configs import load_all_configs
+    from gpu_systems.benchmark import benchmark_model
+    from gpu_systems.model_configs import load_all_configs
     
     output_dir = TRACE_DIR / f"{label}_{mode}" / str(uuid4())
     output_dir.mkdir(parents=True, exist_ok=True)

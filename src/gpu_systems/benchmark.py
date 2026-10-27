@@ -5,7 +5,7 @@ import gc
 from statistics import mean, stdev
 from cs336_basics.model import Transformer
 from tqdm import tqdm
-from cs336_systems.model_configs import load_all_configs, generate_latex_table
+from gpu_systems.model_configs import load_all_configs, generate_latex_table
 from torch.profiler import record_function
 
 def benchmark(config:dict, w:int, n:int, device = "mps"): 
@@ -221,37 +221,43 @@ def benchmark_model(configs: dict, w: int, n: int, mode: str, device="cuda"):
     return step_times
 
 
-configs = load_all_configs()
-df_list = []
-for name,config in configs.items(): 
-    # Skip huge models that will OOM an A10G and corrupt the nsys trace
-    if name in ["10B", "xl"]:
-        print(f"Skipping {name} to avoid OOM crash on A10G.")
-        continue
 
-    df = pd.DataFrame([config["transformer"]])
-    for test_mode in ["forward", "forward_backward", "full"]:
-        try:
-            times = benchmark_model(configs=config, w=5, n=10, mode=test_mode, device="cuda")
-            avg_time = sum(times) / len(times)
-            std_time = stdev(times)
-            print(f"Mode: {test_mode:<18} | {name:<6} | Avg Step Time: {avg_time:.6f} seconds")
-            
-            df[f"Time_{test_mode}"] = avg_time 
-            df[f"STD_{test_mode}"] = std_time 
-        except RuntimeError as e:
-            if "out of memory" in str(e).lower():
-                print(f"OOM on {name} - skipping")
-            else:
-                raise e
-        finally:
-            torch.cuda.empty_cache()
-            gc.collect()
-            
-    df_list.append(df)
-torch.cuda.empty_cache()
-gc.collect()
+def main():
+    configs = load_all_configs()
+    df_list = []
+    for name,config in configs.items(): 
+        # Skip huge models that will OOM an A10G and corrupt the nsys trace
+        if name in ["10B", "xl"]:
+            print(f"Skipping {name} to avoid OOM crash on A10G.")
+            continue
 
-final_df = pd.concat(df_list, ignore_index=True)
-print(final_df)
-print(final_df.to_latex(index=False))
+        df = pd.DataFrame([config["transformer"]])
+        for test_mode in ["forward", "forward_backward", "full"]:
+            try:
+                times = benchmark_model(configs=config, w=5, n=10, mode=test_mode, device="cuda")
+                avg_time = sum(times) / len(times)
+                std_time = stdev(times)
+                print(f"Mode: {test_mode:<18} | {name:<6} | Avg Step Time: {avg_time:.6f} seconds")
+
+                df[f"Time_{test_mode}"] = avg_time 
+                df[f"STD_{test_mode}"] = std_time 
+            except RuntimeError as e:
+                if "out of memory" in str(e).lower():
+                    print(f"OOM on {name} - skipping")
+                else:
+                    raise e
+            finally:
+                torch.cuda.empty_cache()
+                gc.collect()
+
+        df_list.append(df)
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    final_df = pd.concat(df_list, ignore_index=True)
+    print(final_df)
+    print(final_df.to_latex(index=False))
+
+
+if __name__ == "__main__":
+    main()

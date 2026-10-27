@@ -1,7 +1,7 @@
 """
 Smoke test to verify the Modal container environment works correctly.
 Tests: CUDA availability, nsys binary, package imports, config loading.
-Run with: python3 -m modal run modal_runner.py --script cs336_systems/smoke_test.py
+Run with: modal run modal/modal_runner.py::run_script --script-path modal/smoke_test.py
 """
 import sys
 
@@ -66,8 +66,8 @@ for pkg in ["torch", "triton", "numpy", "pandas", "matplotlib", "einops", "wandb
 # 5. Check cs336 packages
 print("\n[5/6] CS336 Packages")
 all_ok &= check("import cs336_basics", lambda: __import__("cs336_basics").__name__)
-all_ok &= check("import cs336_systems", lambda: __import__("cs336_systems").__name__)
-all_ok &= check("load_all_configs()", lambda: list(__import__("cs336_systems.model_configs", fromlist=["load_all_configs"]).load_all_configs().keys()))
+all_ok &= check("import gpu_systems", lambda: __import__("gpu_systems").__name__)
+all_ok &= check("load_all_configs()", lambda: list(__import__("gpu_systems.model_configs", fromlist=["load_all_configs"]).load_all_configs().keys()))
 
 # 6. Quick CUDA tensor test
 print("\n[6/6] CUDA Tensor Smoke Test")

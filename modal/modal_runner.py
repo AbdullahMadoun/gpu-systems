@@ -6,7 +6,7 @@ import modal
 # Define the Modal App
 app = modal.App("cs336-assignment2-systems")
 
-ASSIGNMENT_DIR = Path(__file__).parent.resolve()
+ASSIGNMENT_DIR = Path(__file__).parent.parent.resolve()
 
 # Container Image with CUDA 12.1, PyTorch 2.x, Triton, Ninja, nsys, etc.
 image = (
@@ -135,7 +135,7 @@ def run_nsys_profile(script_path: str, nvtx_capture: str = "") -> bytes:
 
 # Function: Leaderboard (2x A100-80GB GPUs)
 @app.function(image=image, gpu="A100:2", timeout=600)
-def run_leaderboard(script_path: str = "cs336_systems/benchmark.py"):
+def run_leaderboard(script_path: str = "src/gpu_systems/benchmark.py"):
     _setup_environment()
     cmd = ["python3", script_path]
     print(f"Executing Leaderboard: {' '.join(cmd)}")
@@ -176,7 +176,7 @@ def main(
     """
     if leaderboard:
         print("⚠️  [BUDGET ALERT] Launching 8B Leaderboard Benchmark on 2x A100-80GB GPUs...")
-        code = run_leaderboard.remote(script_path=script if script else "cs336_systems/benchmark.py")
+        code = run_leaderboard.remote(script_path=script if script else "src/gpu_systems/benchmark.py")
         return
 
     if nsys:
@@ -211,7 +211,7 @@ def main(
         return
 
     if section2 or section3:
-        target_script = script if script else "cs336_systems/benchmark.py"
+        target_script = script if script else "src/gpu_systems/benchmark.py"
         print(f"🚀 Running Section 2/3 Script '{target_script}' on A10G GPU...")
         code = run_script.remote(script_path=target_script)
         return

@@ -1,9 +1,25 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 
+const int TILE_SIZE = 32;
+
+__global__ void naive_matmul(float *A, float *B, float *R, int M, int N,
+                             int P) {
+  int col = blockDim.x * blockIdx.x + threadIdx.x;
+  int row = blockDim.y * blockIdx.y + threadIdx.y;
+
+  float r_value = 0.0f;
+
+  if (row < M && col < P) {
+    for (int i = 0; i < N; ++i) {
+      r_value += A[row * N + i] * B[i * P + col];
+    }
+    R[row * P + col] = r_value;
+  }
+}
+
 __global__ void tiled_matmul(float *A, float *B, float *R, int M, int N,
                              int P) {
-  int TILE_SIZE = 32;
   __shared__ float A_tile[TILE_SIZE][TILE_SIZE];
   __shared__ float B_tile[TILE_SIZE][TILE_SIZE];
   int col = blockDim.x * blockIdx.x + threadIdx.x;
@@ -38,13 +54,14 @@ __global__ void tiled_matmul(float *A, float *B, float *R, int M, int N,
     R[row * P + col] = r_value;
   }
 }
+
 void launch_tiled_matmul(float *A, float *B, float *R, int M, int N, int P) {
   float *A_d;
   float *B_d;
   float *R_d;
-  int A_size = M * N * sizeof(float);
-  int B_size = N * P * sizeof(float);
-  int R_size = M * P * sizeof(float);
+  size_t A_size = (size_t)M * N * sizeof(float);
+  size_t B_size = (size_t)N * P * sizeof(float);
+  size_t R_size = (size_t)M * P * sizeof(float);
   cudaMalloc((void **)&A_d, A_size);
   cudaMemcpy(A_d, A, A_size, cudaMemcpyHostToDevice);
 
@@ -53,13 +70,11 @@ void launch_tiled_matmul(float *A, float *B, float *R, int M, int N, int P) {
 
   cudaMalloc((void **)&R_d, R_size);
 
-  int threads = 32;
-  dim3 dimBlock(threads, threads);
-  dim3 dimGrid((threads - 1 + P) / threads, (threads - 1 + M) / threads);
-  tiled_matmul<<<dimGrid, dimBlock>>>(float *A, float *B, float *R, int M,
-                                      int N, int P);
+  dim3 dimBlock(TILE_SIZE, TILE_SIZE);
+  dim3 dimGrid((P + TILE_SIZE - 1) / TILE_SIZE, (M + TILE_SIZE - 1) / TILE_SIZE);
+  tiled_matmul<<<dimGrid, dimBlock>>>(A_d, B_d, R_d, M, N, P);
 
-  cudaMemcpy(R_d, R, R_size, cudaMemcpyDeviceToHost);
+  cudaMemcpy(R, R_d, R_size, cudaMemcpyDeviceToHost);
   cudaFree(A_d);
   cudaFree(B_d);
   cudaFree(R_d);
